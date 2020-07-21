@@ -5,7 +5,7 @@ orbs:
   aws-s3: circleci/aws-s3@1.0.16
 
 jobs:
-  lint:
+  lint-go:
     docker:
       - image: circleci/golang:1.14
     environment:
@@ -30,6 +30,31 @@ jobs:
             golangci-lint run --out-format junit-xml -v > ${TEST_RESULTS}/go-test-report.xml
       - store_test_results:
           path: /tmp/test-results
+
+  lint-tf:
+    docker:
+      - image: circleci/buildpack-deps
+    environment:
+      AWS_REGION: us-east-1
+      TERRAFORM_VERSION: 0.12.26
+    steps:
+      - checkout
+      - run:
+          name: Install terraform
+          command: |
+            curl -o /tmp/terraform.zip -sSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+            sudo unzip -d /usr/bin /tmp/terraform.zip
+            sudo chmod ugo+x /usr/bin/terraform
+      - run:
+          name: Install tflint
+          command: |
+            curl -Ls https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
+      - run:
+          name: Lint
+          command: |
+            cd infra
+            terraform validate
+            tflint --deep
 
   build:
     docker:
@@ -83,7 +108,8 @@ jobs:
 workflows:
   every-commit:
     jobs:
-      - lint
+      - lint-go
+      - lint-tf
       - build
 
   tags:
