@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Install tflint
           command: |
-            curl -Ls https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
+            curl -Ls https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
       - run:
           name: Lint
           command: |
