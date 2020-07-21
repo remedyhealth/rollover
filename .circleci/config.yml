@@ -53,6 +53,7 @@ jobs:
           name: Lint
           command: |
             cd infra
+            terraform init
             terraform validate
             tflint --deep
 
