@@ -5,6 +5,32 @@ orbs:
   aws-s3: circleci/aws-s3@1.0.16
 
 jobs:
+  lint:
+    docker:
+      - image: circleci/golang:1.14
+    environment:
+      LINT_VERSION: v1.26.0
+      TEST_RESULTS: /tmp/test-results
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}-{{ checksum "go.sum" }}
+            - v1-{{ .Branch }}
+            - v1
+      - run: mkdir -p $TEST_RESULTS
+      - run:
+          name: Install golangci-lint
+          command: |
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh |\
+              sh -s -- -b $(go env GOPATH)/bin ${LINT_VERSION}
+      - run:
+          name: Lint
+          command: |
+            golangci-lint run --out-format junit-xml -v > ${TEST_RESULTS}/go-test-report.xml
+      - store_test_results:
+          path: /tmp/test-results
+
   build:
     docker:
       - image: circleci/golang:1.14
@@ -46,10 +72,41 @@ jobs:
           from: refresh.zip
           to: s3://rmdy-artifacts/rollover/refresh.zip
 
+  deploy:
+    docker:
+      - image: circleci/python:latest
+    steps:
+      - checkout
+      - run: pip3 install requests
+      - run: python3 scripts/deploy.py ./infra
+
 workflows:
   every-commit:
     jobs:
+      - lint
       - build
+
+  tags:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
       - upload:
           requires:
             - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+      - deploy:
+          requires:
+            - upload
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
