@@ -1,0 +1,55 @@
+---
+version: 2.1
+
+orbs:
+  aws-s3: circleci/aws-s3@1.0.16
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14
+    environment:
+      GOOS: linux
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}-{{ checksum "go.sum" }}
+            - v1-{{ .Branch }}
+            - v1
+      - run: go build -o bin/fanout ./cmd/fanout
+      - run: go build -o bin/refresh ./cmd/refresh
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
+      - store_artifacts:
+          path: bin
+      - persist_to_workspace:
+          root: .
+          paths:
+            - bin
+
+  upload:
+    docker:
+      - image: circleci/buildpack-deps
+    steps:
+      - attach_workspace:
+          at: .
+      - run: mv bin/* .
+      - run: zip fanout.zip fanout
+      - run: zip refresh.zip refresh
+      - aws-s3/copy:
+          from: fanout.zip
+          to: s3://rmdy-artifacts/rollover/fanout.zip
+      - aws-s3/copy:
+          from: refresh.zip
+          to: s3://rmdy-artifacts/rollover/refresh.zip
+
+workflows:
+  every-commit:
+    jobs:
+      - build
+      - upload:
+          requires:
+            - build
