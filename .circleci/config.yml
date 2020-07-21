@@ -40,11 +40,8 @@ jobs:
       - run: zip fanout.zip fanout
       - run: zip refresh.zip refresh
       - aws-s3/copy:
-          from: fanout.zip
-          to: s3://rmdy-artifacts/rollover/fanout.zip
-      - aws-s3/copy:
-          from: refresh.zip
-          to: s3://rmdy-artifacts/rollover/refresh.zip
+          from: "*.zip"
+          to: s3://rmdy-artifacts/rollover/
 
 workflows:
   every-commit:
