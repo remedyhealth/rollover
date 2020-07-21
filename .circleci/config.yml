@@ -50,10 +50,19 @@ jobs:
           command: |
             curl -Ls https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
       - run:
+          name: Terraform init
+          command: |
+            cat \<<EOF | tee ~/.terraformrc > /dev/null
+            credentials "app.terraform.io" {
+              token = "${TF_USER_TOKEN}"
+            }
+            EOF
+            cd infra
+            terraform init
+      - run:
           name: Lint
           command: |
             cd infra
-            terraform init
             terraform validate
             tflint --deep
 
