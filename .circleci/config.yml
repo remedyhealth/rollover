@@ -52,7 +52,7 @@ jobs:
       - run:
           name: Terraform init
           command: |
-            cat \<<EOF | tee ~/.terraformrc > /dev/null
+            cat \<<EOF > ~/.terraformrc
             credentials "app.terraform.io" {
               token = "${TF_USER_TOKEN}"
             }

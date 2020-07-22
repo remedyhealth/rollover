@@ -92,8 +92,12 @@ func HandleEvent(ctx context.Context, event events.SNSEvent) error {
 	if err != nil {
 		return fmt.Errorf("unable to list ASG configs: %w", err)
 	}
-	asgConfigs := make([]ASGConfig, len(asgKVs))
-	for i, kvPair := range asgKVs {
+	asgConfigs := make([]ASGConfig, 0)
+	for _, kvPair := range asgKVs {
+		if strings.HasSuffix(kvPair.Key, "/") {
+			continue
+		}
+
 		var config ASGConfig
 		if err := json.Unmarshal(kvPair.Value, &config); err != nil {
 			return fmt.Errorf("unable to parse config JSON at %s: %w", kvPair.Key, err)
@@ -105,7 +109,7 @@ func HandleEvent(ctx context.Context, event events.SNSEvent) error {
 			config.Order = math.MaxUint32
 		}
 
-		asgConfigs[i] = config
+		asgConfigs = append(asgConfigs, config)
 	}
 	sort.Sort(ByOrder(asgConfigs))
 
