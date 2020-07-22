@@ -58,6 +58,7 @@ jobs:
             }
             EOF
             cd infra
+            terraform workspace new staging
             terraform init
       - run:
           name: Lint
@@ -121,6 +122,10 @@ workflows:
       - lint-go
       - lint-tf
       - build
+      - upload:
+          requires:
+            - lint-go
+            - build
 
   tags:
     jobs:
