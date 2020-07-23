@@ -134,6 +134,10 @@ workflows:
           requires:
             - lint-go
             - build
+      - deploy:
+          requires:
+            - lint-tf
+            - upload
 
   tags:
     jobs:
