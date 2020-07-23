@@ -1,6 +1,10 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/go,visualstudiocode,terraform,vim,osx
-# Edit at https://www.toptal.com/developers/gitignore?templates=go,visualstudiocode,terraform,vim,osx
+# Created by https://www.toptal.com/developers/gitignore/api/go,visualstudiocode,terraform,vim,osx,direnv
+# Edit at https://www.toptal.com/developers/gitignore?templates=go,visualstudiocode,terraform,vim,osx,direnv
+
+### direnv ###
+.direnv
+.envrc
 
 ### Go ###
 # Binaries for programs and plugins
@@ -114,7 +118,6 @@ tags
 # Ignore all local history of files
 .history
 
-# End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode,terraform,vim,osx
+# End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode,terraform,vim,osx,direnv
 
 bin/
-*.zip
