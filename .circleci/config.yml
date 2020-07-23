@@ -130,14 +130,6 @@ workflows:
       - lint-go
       - lint-tf
       - build
-      - upload:
-          requires:
-            - lint-go
-            - build
-      - deploy:
-          requires:
-            - lint-tf
-            - upload
 
   tags:
     jobs:
