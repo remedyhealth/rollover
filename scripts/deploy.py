@@ -65,15 +65,19 @@ def create_config_version(workspace_id: str) -> Tuple[str, str]:
 def archive_repo(root: str, globs: List[str], files: List[str]) -> BytesIO:
     print("Creating archive")
 
+    if root != ".":
+        prefix = root
     root = os.path.abspath(root)
     out = BytesIO()
     with tarfile.open(fileobj=out, mode="w:gz") as tar:
         for f in files:
-            tar.add(os.path.join(root, f), arcname=f)
+            tar.add(os.path.join(root, f), arcname=os.path.join(prefix, f))
 
         for pathspec in globs:
             for tf_file in glob(os.path.join(root, pathspec)):
-                tar.add(tf_file, arcname=os.path.basename(tf_file))
+                tar.add(
+                    tf_file, arcname=os.path.join(prefix, os.path.basename(tf_file))
+                )
 
     out.seek(0)
     return out
