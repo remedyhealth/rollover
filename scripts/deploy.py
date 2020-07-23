@@ -137,6 +137,7 @@ def main() -> None:
         "--file",
         metavar="FILE",
         action="append",
+        default=[],
         help="individual files or directories to add directly to the run, relative to the root. Specify multiple times",
     )
     parser.add_argument(
@@ -148,7 +149,7 @@ def main() -> None:
 
     workspace_id = fetch_workspace_id()
     config_id, upload_url = create_config_version(workspace_id)
-    upload_archive(archive_repo(args.root, args.glob), upload_url)
+    upload_archive(archive_repo(args.root, args.glob, args.file), upload_url)
     create_run(workspace_id, config_id, args.message)
 
 
