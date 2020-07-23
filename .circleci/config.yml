@@ -115,7 +115,7 @@ jobs:
     steps:
       - checkout
       - run: pip3 install requests
-      - run: python3 scripts/deploy.py ./infra
+      - run: ./scripts/deploy.py -m "Deploy from Circle build ${CIRCLE_BUILD_NUM}" ./infra
 
 _tags_only: &tags_only
   filters:
