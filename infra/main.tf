@@ -1,9 +1,9 @@
-resource aws_sns_topic rollover {
-  name = "ami-builder-notifications"
+data aws_s3_bucket_object fanout {
+  bucket = "rmdy-artifacts"
+  key    = "rollover/fanout.zip"
 }
 
-resource aws_sqs_queue rollover {
-  name                        = "asg-rollover-events"
-  fifo_queue                  = true
-  content_based_deduplication = true
+data aws_s3_bucket_object refresh {
+  bucket = "rmdy-artifacts"
+  key    = "rollover/refresh.zip"
 }

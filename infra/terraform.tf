@@ -6,7 +6,7 @@ terraform {
     organization = "Remedy-Health-Media"
 
     workspaces {
-      name = "rollover"
+      prefix = "rollover-"
     }
   }
 }
