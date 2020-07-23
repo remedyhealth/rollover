@@ -58,7 +58,8 @@ jobs:
             }
             EOF
             cd infra
-            terraform workspace new staging
+            mkdir .terraform
+            echo -n "staging" > .terraform/environment
             terraform init
       - run:
           name: Lint
@@ -116,6 +117,13 @@ jobs:
       - run: pip3 install requests
       - run: python3 scripts/deploy.py ./infra
 
+_tags_only: &tags_only
+  filters:
+    branches:
+      ignore: /.*/
+    tags:
+      only: /^v.*/
+
 workflows:
   every-commit:
     jobs:
@@ -129,25 +137,19 @@ workflows:
 
   tags:
     jobs:
+      - lint-go:
+          <<: *tags_only
+      - lint-tf:
+          <<: *tags_only
       - build:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
+          <<: *tags_only
       - upload:
+          <<: *tags_only
           requires:
+            - lint-go
             - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
       - deploy:
+          <<: *tags_only
           requires:
+            - lint-tf
             - upload
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
