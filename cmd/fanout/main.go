@@ -24,9 +24,15 @@ const (
 
 	// just a random uuidgen
 	groupID = "8FA07FBE-2772-4BFA-ABE7-70E0F2398ABF"
+
+	allTypes = "all"
 )
 
 var queueURL = os.Getenv("QUEUE_URL")
+
+type BuildNotification struct {
+	Type string `json:"type"`
+}
 
 type PackerBuild struct {
 	Name string `json:"name"`
@@ -55,6 +61,12 @@ type RolloverMesssage struct {
 }
 
 func HandleEvent(ctx context.Context, event events.SNSEvent) error {
+	var notif BuildNotification
+
+	if err := json.Unmarshal([]byte(event.Records[0].SNS.Message), &notif); err != nil {
+		return fmt.Errorf("unable to parse notification JSON: %w", err)
+	}
+
 	session, err := session.NewSession()
 	if err != nil {
 		return fmt.Errorf("unable to create AWS session: %w", err)
@@ -101,6 +113,10 @@ func HandleEvent(ctx context.Context, event events.SNSEvent) error {
 		var config ASGConfig
 		if err := json.Unmarshal(kvPair.Value, &config); err != nil {
 			return fmt.Errorf("unable to parse config JSON at %s: %w", kvPair.Key, err)
+		}
+
+		if notif.Type != config.Type && notif.Type != allTypes {
+			continue
 		}
 
 		// If the order is not set, set it to the max to ensure that a zero value
