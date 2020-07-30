@@ -15,9 +15,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-{{ .Branch }}-{{ checksum "go.sum" }}
-            - v1-{{ .Branch }}
-            - v1
+            - v2-{{ .Branch }}-{{ checksum "go.sum" }}
+            - v2-{{ .Branch }}
+            - v2
       - run: mkdir -p $TEST_RESULTS
       - run:
           name: Install golangci-lint
@@ -77,15 +77,15 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-{{ .Branch }}-{{ checksum "go.sum" }}
-            - v1-{{ .Branch }}
-            - v1
+            - v2-{{ .Branch }}-{{ checksum "go.sum" }}
+            - v2-{{ .Branch }}
+            - v2
       - run: go build -o bin/fanout ./cmd/fanout
       - run: go build -o bin/refresh ./cmd/refresh
       - save_cache:
-          key: v1-{{ .Branch }}-{{ checksum "go.sum" }}
+          key: v2-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
-            - /go/pkg/mod
+            - ~/go/pkg/mod
       - store_artifacts:
           path: bin
       - persist_to_workspace:
