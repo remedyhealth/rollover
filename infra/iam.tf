@@ -80,7 +80,7 @@ resource aws_iam_role_policy_attachment refresh {
 
 ### SNS ###
 data aws_iam_policy_document sns_assume {
-  statment {
+  statement {
     actions = ["sts:AssumeRole"]
 
     principals {
