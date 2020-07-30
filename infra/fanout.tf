@@ -20,7 +20,7 @@ resource aws_lambda_function fanout {
   s3_object_version = data.aws_s3_bucket_object.fanout.version_id
 
   environment {
-    variables = var.lambda_debug ? local.default_fanout_vars : local.debug_fanout_vars
+    variables = var.lambda_debug ? local.debug_fanout_vars : local.default_fanout_vars
   }
 }
 
