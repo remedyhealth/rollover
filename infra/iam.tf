@@ -1,3 +1,4 @@
+### LAMBDAS ###
 data aws_iam_policy_document lambda_assume {
   statement {
     actions = ["sts:AssumeRole"]
@@ -75,4 +76,26 @@ resource aws_iam_role_policy_attachment refresh_basic_exec {
 resource aws_iam_role_policy_attachment refresh {
   role       = aws_iam_role.refresh.name
   policy_arn = aws_iam_policy.refresh.arn
+}
+
+### SNS ###
+data aws_iam_policy_document sns_assume {
+  statment {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["sns.amazonaws.com"]
+    }
+  }
+}
+
+resource aws_iam_role sns {
+  name_prefix        = "rollover-sns"
+  assume_role_policy = data.aws_iam_policy_document.sns_assume.json
+}
+
+resource aws_iam_role_policy_attachment sns {
+  role       = aws_iam_role.sns.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonSNSRole"
 }
