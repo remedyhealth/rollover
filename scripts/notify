@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+usage() {
+    echo "usage: notify IMAGE_NAME"
+    exit 1
+}
+
+[ -z "$1" ] && usage
+
+IMAGE_NAME="$1"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SNS_ARN="$( cd "$DIR/../infra" >/dev/null 2>&1 && terraform output sns_topic_arn )"
+
+aws sns publish --topic-arn "$SNS_ARN" --message "{\"type\": \"$IMAGE_NAME\"}"
