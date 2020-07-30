@@ -7,7 +7,7 @@ orbs:
 jobs:
   lint-go:
     docker:
-      - image: circleci/golang:1.14
+      - image: cimg/go:1.14
     environment:
       LINT_VERSION: v1.26.0
       TEST_RESULTS: /tmp/test-results
@@ -33,7 +33,7 @@ jobs:
 
   lint-tf:
     docker:
-      - image: circleci/buildpack-deps
+      - image: cimg/base
     environment:
       AWS_REGION: us-east-1
       TERRAFORM_VERSION: 0.12.26
@@ -70,7 +70,7 @@ jobs:
 
   build:
     docker:
-      - image: circleci/golang:1.14
+      - image: cimg/go:1.14
     environment:
       GOOS: linux
     steps:
@@ -95,7 +95,7 @@ jobs:
 
   upload:
     docker:
-      - image: circleci/buildpack-deps
+      - image: cimg/base
     steps:
       - attach_workspace:
           at: .
