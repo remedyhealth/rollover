@@ -33,7 +33,7 @@ jobs:
 
   lint-tf:
     docker:
-      - image: cimg/base
+      - image: cimg/base:stable
     environment:
       AWS_REGION: us-east-1
       TERRAFORM_VERSION: 0.12.26
@@ -95,7 +95,7 @@ jobs:
 
   upload:
     docker:
-      - image: cimg/base
+      - image: cimg/base:stable
     steps:
       - attach_workspace:
           at: .
