@@ -95,7 +95,7 @@ jobs:
 
   upload:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:3.8
     steps:
       - attach_workspace:
           at: .
