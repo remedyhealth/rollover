@@ -111,11 +111,22 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/python:latest
+      - image: cimg/python:3.8
+    parameters:
+      env:
+        type: string
+        default: staging
     steps:
       - checkout
-      - run: pip3 install requests
-      - run: ./scripts/deploy.py -m "Deploy from Circle build ${CIRCLE_BUILD_NUM}" infra
+      - run:
+          name: Ensure dependencies
+          command: |
+            pip3 install requests
+      - run:
+          name: Deploy
+          command: |
+            export TF_WORKSPACE_NAME="rollover-<<parameters.env>>"
+              ./scripts/deploy.py -m "Deploy from Circle build ${CIRCLE_BUILD_NUM}" infra
 
 _tags_only: &tags_only
   filters:
@@ -145,7 +156,14 @@ workflows:
             - lint-go
             - build
       - deploy:
+          env: staging
           <<: *tags_only
           requires:
             - lint-tf
             - upload
+      # - deploy:
+      #     env: prod
+      #     <<: *tags_only
+      #     requires:
+      #       - lint-tf
+      #       - upload
