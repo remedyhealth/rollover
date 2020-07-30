@@ -13,5 +13,6 @@ require (
 	github.com/hashicorp/serf v0.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
+	github.com/rs/zerolog v1.19.0
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 )
