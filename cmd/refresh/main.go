@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type RefreshMessage struct {
@@ -30,17 +33,29 @@ func (msg RefreshMessage) ASGName() (string, error) {
 	return strings.Split(parsed.Service, "/")[1], nil
 }
 
+func init() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if os.Getenv("DEBUG") == "1" {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+}
+
 func HandleEvent(ctx context.Context, event events.SQSEvent) error {
 	record := event.Records[0]
+	log.Debug().RawJSON("event", []byte(record.Body)).Msg("Trigger")
+
 	var msg RefreshMessage
 	if err := json.Unmarshal([]byte(record.Body), &msg); err != nil {
 		return fmt.Errorf("unable to parse message JSON: %w", err)
 	}
+	log.Info().Str("arn", msg.ARN).Str("ami", msg.AMI).Msg("Parsed event")
 
 	name, err := msg.ASGName()
 	if err != nil {
 		return fmt.Errorf("unable to parse ASG name from ARN: %w", err)
 	}
+	log.Debug().Str("asg_name", name).Msg("Parsed")
 
 	sess, err := session.NewSession()
 	if err != nil {
@@ -59,7 +74,7 @@ func HandleEvent(ctx context.Context, event events.SQSEvent) error {
 	}
 	asg := asgDesc.AutoScalingGroups[0]
 
-	_, err = ec2Svc.CreateLaunchTemplateVersion(&ec2.CreateLaunchTemplateVersionInput{
+	out, err := ec2Svc.CreateLaunchTemplateVersion(&ec2.CreateLaunchTemplateVersionInput{
 		LaunchTemplateId: asg.LaunchTemplate.LaunchTemplateId,
 		SourceVersion:    aws.String("$Latest"),
 		LaunchTemplateData: &ec2.RequestLaunchTemplateData{
@@ -69,6 +84,10 @@ func HandleEvent(ctx context.Context, event events.SQSEvent) error {
 	if err != nil {
 		return fmt.Errorf("unable to create new launch template version: %w", err)
 	}
+	log.Info().
+		Int64("num", *out.LaunchTemplateVersion.VersionNumber).
+		Str("desc", *out.LaunchTemplateVersion.VersionDescription).
+		Msg("Created LaunchTemplate version")
 
 	refreshReq, err := asgSvc.StartInstanceRefresh(&autoscaling.StartInstanceRefreshInput{
 		AutoScalingGroupName: aws.String(name),
@@ -76,9 +95,23 @@ func HandleEvent(ctx context.Context, event events.SQSEvent) error {
 	if err != nil {
 		return fmt.Errorf("unable to start instance refresh: %w", err)
 	}
+	log.Info().Str("id", *refreshReq.InstanceRefreshId).Msg("Started refresh")
+
+	deadline, _ := ctx.Deadline()
+	deadline = deadline.Add(-100 * time.Millisecond)
+	timeoutChan := time.After(time.Until(deadline))
+
+	var complete int64
 
 loop:
 	for {
+		select {
+		case <-timeoutChan:
+			log.Warn().Msg("Lambda about to time out, but refresh is still running")
+			return nil
+		default:
+		}
+
 		refresh, err := asgSvc.DescribeInstanceRefreshes(&autoscaling.DescribeInstanceRefreshesInput{
 			AutoScalingGroupName: aws.String(name),
 			InstanceRefreshIds:   aws.StringSlice([]string{*refreshReq.InstanceRefreshId}),
@@ -93,14 +126,21 @@ loop:
 		case autoscaling.InstanceRefreshStatusFailed:
 			return fmt.Errorf("refresh failed: %s", *ref.StatusReason)
 		case autoscaling.InstanceRefreshStatusInProgress:
-			fmt.Printf("%d%% complete", *ref.PercentageComplete)
-			fallthrough
+			if *ref.PercentageComplete != complete {
+				log.Info().Int64("complete", *ref.PercentageComplete).Msg("Progress")
+			} else {
+				log.Debug().Msg("Progress unchanged")
+			}
+			complete = *ref.PercentageComplete
+
+			time.Sleep(time.Minute)
 		case autoscaling.InstanceRefreshStatusPending:
+			log.Debug().Msg("Refresh pending, sleeping for 15 seconds")
 			time.Sleep(15 * time.Second)
 		case autoscaling.InstanceRefreshStatusCancelling, autoscaling.InstanceRefreshStatusCancelled:
 			return fmt.Errorf("instance refresh cancelled: %s", *ref.StatusReason)
 		case autoscaling.InstanceRefreshStatusSuccessful:
-			fmt.Println("Refresh complete")
+			log.Info().Msg("Complete")
 			break loop
 		default:
 			return fmt.Errorf("unknown instance refresh status: %s", *ref.Status)

@@ -65,7 +65,7 @@ type RolloverMesssage struct {
 func init() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if _, ok := os.LookupEnv("DEBUG"); ok {
+	if os.Getenv("DEBUG") == "1" {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 }

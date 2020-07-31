@@ -1,13 +1,3 @@
-locals {
-  default_fanout_vars = {
-    CONSUL_HTTP_ADDR  = "https://consul.rmdy.hm"
-    CONSUL_HTTP_TOKEN = var.consul_token
-    QUEUE_URL         = aws_sqs_queue.rollover.id
-  }
-
-  debug_fanout_vars = merge(local.default_fanout_vars, { DEBUG = 1 })
-}
-
 resource aws_lambda_function fanout {
   function_name     = "rollover-fanout"
   description       = "Fan out AMI build notifications into the queue to refresh ASGs"
@@ -20,7 +10,12 @@ resource aws_lambda_function fanout {
   s3_object_version = data.aws_s3_bucket_object.fanout.version_id
 
   environment {
-    variables = var.lambda_debug ? local.debug_fanout_vars : local.default_fanout_vars
+    variables = {
+      DEBUG             = var.lambda_debug ? 1 : 0
+      CONSUL_HTTP_ADDR  = "https://consul.rmdy.hm"
+      CONSUL_HTTP_TOKEN = var.consul_token
+      QUEUE_URL         = aws_sqs_queue.rollover.id
+    }
   }
 }
 

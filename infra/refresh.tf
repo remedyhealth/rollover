@@ -9,6 +9,12 @@ resource aws_lambda_function refresh {
   s3_bucket                      = "rmdy-artifacts"
   s3_key                         = "rollover/refresh.zip"
   s3_object_version              = data.aws_s3_bucket_object.refresh.version_id
+
+  environment {
+    variables = {
+      DEBUG = var.lambda_debug ? 1 : 0
+    }
+  }
 }
 
 resource aws_lambda_event_source_mapping refresh {
