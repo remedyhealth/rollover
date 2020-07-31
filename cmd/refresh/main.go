@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/remedyhealth/rollover/shared"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -39,6 +41,12 @@ func init() {
 	if os.Getenv("DEBUG") == "1" {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
+
+	log.Info().
+		Str("version", shared.Version).
+		Str("build", shared.BuildNum).
+		Str("commit", shared.Rev).
+		Msg("Init")
 }
 
 func HandleEvent(ctx context.Context, event events.SQSEvent) error {

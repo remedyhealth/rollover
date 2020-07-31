@@ -80,8 +80,20 @@ jobs:
             - v2-{{ .Branch }}-{{ checksum "go.sum" }}
             - v2-{{ .Branch }}
             - v2
-      - run: go build -o bin/fanout ./cmd/fanout
-      - run: go build -o bin/refresh ./cmd/refresh
+      - run:
+          name: Build Fanout
+          command: |
+            go build \
+              -ldflags="-X shared.Version=${CIRCLE_TAG} -X shared.BuildNum=${CIRCLE_BUILD_NUM} -X shared.Rev=${CIRCLE_SHA1}" \
+              -o bin/fanout \
+              ./cmd/fanout
+      - run:
+          name: Build Refresh
+          command: |
+            go build \
+              -ldflags="-X shared.Version=${CIRCLE_TAG} -X shared.BuildNum=${CIRCLE_BUILD_NUM} -X shared.Rev=${CIRCLE_SHA1}" \
+              -o bin/refresh \
+              ./cmd/refresh
       - save_cache:
           key: v2-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
