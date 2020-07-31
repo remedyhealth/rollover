@@ -168,14 +168,10 @@ workflows:
             - lint-go
             - build
       - deploy:
-          env: staging
           <<: *tags_only
-          requires:
-            - lint-tf
-            - upload
-      - deploy:
-          env: prod
-          <<: *tags_only
+          matrix:
+            parameters:
+              env: [staging, prod]
           requires:
             - lint-tf
             - upload
