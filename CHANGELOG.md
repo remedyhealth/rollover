@@ -1,3 +1,7 @@
+v0.2.3
+======
+* Adds prod deploy to Circle
+
 v0.2.2
 ======
 * Bake versioning info at build time and log at startup
