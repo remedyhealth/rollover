@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -110,7 +111,11 @@ func HandleEvent(ctx context.Context, event events.SNSEvent) error {
 	if err != nil {
 		return fmt.Errorf("unable to get manifest from Consul: %w", err)
 	}
-	log.Debug().RawJSON("manifest", manifestKey.Value).Msg("Consul KV Get")
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, manifestKey.Value); err != nil {
+		return fmt.Errorf("unable to compact manifest: %w", err)
+	}
+	log.Debug().RawJSON("manifest", buf.Bytes()).Msg("Consul KV Get")
 
 	var manifest Manifest
 	if err := json.Unmarshal(manifestKey.Value, &manifest); err != nil {
@@ -137,7 +142,11 @@ func HandleEvent(ctx context.Context, event events.SNSEvent) error {
 			continue
 		}
 
-		log.Debug().RawJSON("config", kvPair.Value).Msg("Considering")
+		var buf bytes.Buffer
+		if err := json.Compact(&buf, kvPair.Value); err != nil {
+			return fmt.Errorf("unable to compact config at %s: %w", kvPair.Key, err)
+		}
+		log.Debug().RawJSON("config", buf.Bytes()).Msg("Considering")
 
 		var config ASGConfig
 		if err := json.Unmarshal(kvPair.Value, &config); err != nil {
