@@ -32,6 +32,14 @@ func (msg RefreshMessage) ASGName() (string, error) {
 		return "", err
 	}
 
+	log.Debug().Dict("arn", zerolog.Dict().
+		Str("account_id", parsed.AccountID).
+		Str("partition", parsed.Partition).
+		Str("region", parsed.Region).
+		Str("resource", parsed.Resource).
+		Str("service", parsed.Service),
+	).Msg("Parsed")
+
 	return strings.Split(parsed.Service, "/")[1], nil
 }
 
