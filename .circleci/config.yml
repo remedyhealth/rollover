@@ -87,7 +87,7 @@ jobs:
             LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.BuildNum=${CIRCLE_BUILD_NUM}'"
             LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.Rev=${CIRCLE_SHA1}'"
             go build \
-              -ldflags="${LDFLAGS}"
+              -ldflags="${LDFLAGS}" \
               -o bin/fanout \
               ./cmd/fanout
       - run:
@@ -97,7 +97,7 @@ jobs:
             LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.BuildNum=${CIRCLE_BUILD_NUM}'"
             LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.Rev=${CIRCLE_SHA1}'"
             go build \
-              -ldflags="${LDFLAGS}"
+              -ldflags="${LDFLAGS}" \
               -o bin/refresh \
               ./cmd/refresh
       - save_cache:
