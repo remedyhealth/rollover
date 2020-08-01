@@ -17,6 +17,7 @@ data aws_iam_policy_document refresh {
       "autoscaling:DescribeInstanceRefreshes",
       "autoscaling:CancelInstanceRefresh",
       "autoscaling:StartInstanceRefresh",
+      "ec2:CreateLaunchTemplateVersion",
     ]
     resources = ["*"]
   }
