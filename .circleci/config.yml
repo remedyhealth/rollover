@@ -83,15 +83,21 @@ jobs:
       - run:
           name: Build Fanout
           command: |
+            LDFLAGS="-X 'github.com/remedyhealth/rollover/shared.Version=${CIRCLE_TAG}'"
+            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.BuildNum=${CIRCLE_BUILD_NUM}'"
+            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.Rev=${CIRCLE_SHA1}'"
             go build \
-              -ldflags="-X shared.Version=${CIRCLE_TAG} -X shared.BuildNum=${CIRCLE_BUILD_NUM} -X shared.Rev=${CIRCLE_SHA1}" \
+              -ldflags="${LDFLAGS}"
               -o bin/fanout \
               ./cmd/fanout
       - run:
           name: Build Refresh
           command: |
+            LDFLAGS="-X 'github.com/remedyhealth/rollover/shared.Version=${CIRCLE_TAG}'"
+            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.BuildNum=${CIRCLE_BUILD_NUM}'"
+            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.Rev=${CIRCLE_SHA1}'"
             go build \
-              -ldflags="-X shared.Version=${CIRCLE_TAG} -X shared.BuildNum=${CIRCLE_BUILD_NUM} -X shared.Rev=${CIRCLE_SHA1}" \
+              -ldflags="${LDFLAGS}"
               -o bin/refresh \
               ./cmd/refresh
       - save_cache:
