@@ -110,7 +110,13 @@ def create_run(workspace_id: str, config_id: str, message: Optional[str] = None)
             }
         },
     )
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError:
+        if resp.status_code != 422:
+            raise
+        print("ERR:", resp.json())
+
     run_id = resp.json()["data"]["id"]
     print("Run ID:", run_id)
     return run_id
