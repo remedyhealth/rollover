@@ -1,3 +1,7 @@
+v0.2.5
+======
+* Fix extracting ASG name from ARN in Refresh method
+
 v0.2.4
 ======
 * Fix build info vars

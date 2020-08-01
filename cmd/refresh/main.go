@@ -40,7 +40,7 @@ func (msg RefreshMessage) ASGName() (string, error) {
 		Str("service", parsed.Service),
 	).Msg("Parsed")
 
-	return strings.Split(parsed.Service, "/")[1], nil
+	return strings.Split(parsed.Resource, "/")[1], nil
 }
 
 func init() {
