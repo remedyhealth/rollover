@@ -1,3 +1,8 @@
+v0.2.4
+======
+* Fix build info vars
+* Logging improvements
+
 v0.2.3
 ======
 * Adds prod deploy to Circle
