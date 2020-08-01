@@ -94,28 +94,25 @@ def upload_archive(archive: BytesIO, upload_url: str) -> None:
 def create_run(workspace_id: str, config_id: str, message: Optional[str] = None) -> str:
     print("Creating new run")
 
-    resp = requests.post(
-        f"{TF_API_HOST}/runs",
-        headers=HEADERS,
-        json={
-            "data": {
-                "type": "runs",
-                "attributes": {"is-destroy": False, "message": message},
-                "relationships": {
-                    "workspace": {"data": {"type": "workspaces", "id": workspace_id}},
-                    "configuration-version": {
-                        "data": {"type": "configuration-versions", "id": config_id}
-                    },
+    params = {
+        "data": {
+            "type": "runs",
+            "attributes": {"is-destroy": False, "message": message},
+            "relationships": {
+                "workspace": {"data": {"type": "workspaces", "id": workspace_id}},
+                "configuration-version": {
+                    "data": {"type": "configuration-versions", "id": config_id}
                 },
-            }
-        },
-    )
+            },
+        }
+    }
+    resp = requests.post(f"{TF_API_HOST}/runs", headers=HEADERS, json=params)
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError:
-        if resp.status_code != 422:
-            raise
+        print("PARAMS:", params)
         print("ERR:", resp.json())
+        raise
 
     run_id = resp.json()["data"]["id"]
     print("Run ID:", run_id)
