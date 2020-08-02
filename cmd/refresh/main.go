@@ -102,7 +102,6 @@ func HandleEvent(ctx context.Context, event events.SQSEvent) error {
 	}
 	log.Info().
 		Int64("num", *out.LaunchTemplateVersion.VersionNumber).
-		Str("desc", *out.LaunchTemplateVersion.VersionDescription).
 		Msg("Created LaunchTemplate version")
 
 	refreshReq, err := asgSvc.StartInstanceRefresh(&autoscaling.StartInstanceRefreshInput{
@@ -116,8 +115,6 @@ func HandleEvent(ctx context.Context, event events.SQSEvent) error {
 	deadline, _ := ctx.Deadline()
 	deadline = deadline.Add(-100 * time.Millisecond)
 	timeoutChan := time.After(time.Until(deadline))
-
-	var complete int64
 
 loop:
 	for {
@@ -142,13 +139,7 @@ loop:
 		case autoscaling.InstanceRefreshStatusFailed:
 			return fmt.Errorf("refresh failed: %s", *ref.StatusReason)
 		case autoscaling.InstanceRefreshStatusInProgress:
-			if *ref.PercentageComplete != complete {
-				log.Info().Int64("complete", *ref.PercentageComplete).Msg("Progress")
-			} else {
-				log.Debug().Msg("Progress unchanged")
-			}
-			complete = *ref.PercentageComplete
-
+			log.Info().Int64("complete", *ref.PercentageComplete).Msg("Progress")
 			time.Sleep(time.Minute)
 		case autoscaling.InstanceRefreshStatusPending:
 			log.Debug().Msg("Refresh pending, sleeping for 15 seconds")
