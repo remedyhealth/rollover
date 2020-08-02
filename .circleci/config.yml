@@ -81,25 +81,8 @@ jobs:
             - v2-{{ .Branch }}
             - v2
       - run:
-          name: Build Fanout
-          command: |
-            LDFLAGS="-X 'github.com/remedyhealth/rollover/shared.Version=${CIRCLE_TAG}'"
-            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.BuildNum=${CIRCLE_BUILD_NUM}'"
-            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.Rev=${CIRCLE_SHA1}'"
-            go build \
-              -ldflags="${LDFLAGS}" \
-              -o bin/fanout \
-              ./cmd/fanout
-      - run:
-          name: Build Refresh
-          command: |
-            LDFLAGS="-X 'github.com/remedyhealth/rollover/shared.Version=${CIRCLE_TAG}'"
-            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.BuildNum=${CIRCLE_BUILD_NUM}'"
-            LDFLAGS+=" -X 'github.com/remedyhealth/rollover/shared.Rev=${CIRCLE_SHA1}'"
-            go build \
-              -ldflags="${LDFLAGS}" \
-              -o bin/refresh \
-              ./cmd/refresh
+          name: Build Function bins
+          command: make
       - save_cache:
           key: v2-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:

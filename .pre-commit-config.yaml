@@ -30,3 +30,8 @@ repos:
     hooks:
       - id: circleci-config-validate
       - id: forbid-binary
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-go.git
+    rev: v1.0.1
+    hooks:
+      - id: checkmake
