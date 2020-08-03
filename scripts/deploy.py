@@ -6,6 +6,7 @@ Creates a new run in the Terraform Cloud workspace
 
 import os
 import tarfile
+import logging
 from argparse import ArgumentParser
 from glob import glob
 from io import BytesIO
@@ -28,6 +29,10 @@ HEADERS = {
 
 
 class MissingEnvironmentError(Exception):
+    pass
+
+
+class BadConfigVersionError(Exception):
     pass
 
 
@@ -91,6 +96,25 @@ def upload_archive(archive: BytesIO, upload_url: str) -> None:
     resp.raise_for_status()
 
 
+def wait_for_configuration_uploaded(config_id: str) -> None:
+    print("Waiting for config version to become ready")
+    while True:
+        resp = requests.get(
+            f"{TF_API_HOST}/configuration-versions/{config_id}", headers=HEADERS
+        )
+        resp.raise_for_status()
+
+        status = resp.json()["data"]["attributes"]["status"]
+        if status == "uploaded":
+            return
+        elif status == "errored":
+            error = resp.json()["data"]["attributes"]["error"]
+            msg = resp.json()["data"]["attributes"]["error-message"]
+            raise BadConfigVersionError(
+                f"ERR: bad status on config-version upload: {error} - {msg}"
+            )
+
+
 def create_run(workspace_id: str, config_id: str, message: Optional[str] = None) -> str:
     print("Creating new run")
 
@@ -148,15 +172,26 @@ def main() -> None:
         help="individual files or directories to add directly to the run, relative to the root. Specify multiple times",
     )
     parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        default=False,
+        help="enable verbose HTTP logging",
+    )
+    parser.add_argument(
         "root", metavar="PATH", help="path to terraform root", nargs="?", default=".",
     )
     args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     env_check()
 
     workspace_id = fetch_workspace_id()
     config_id, upload_url = create_config_version(workspace_id)
     upload_archive(archive_repo(args.root, args.glob, args.file), upload_url)
+    wait_for_configuration_uploaded(config_id)
     create_run(workspace_id, config_id, args.message)
 
 
